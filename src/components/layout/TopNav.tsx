@@ -3,9 +3,14 @@ import {
   Bell, 
   Trophy, 
   Map,
-  Menu
+  Menu,
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface TopNavProps {
   currentView: string;
@@ -14,12 +19,20 @@ interface TopNavProps {
 }
 
 export function TopNav({ currentView, onViewChange, notificationCount }: TopNavProps) {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
   const navItems = [
     { id: "channels", label: "Channels", icon: Menu },
     { id: "leaderboard", label: "Leaderboard", icon: Trophy },
     { id: "roadmap", label: "Roadmap", icon: Map },
     { id: "notifications", label: "Notifications", icon: Bell, count: notificationCount },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <header className="h-14 border-b border-border/50 bg-card/50 backdrop-blur-sm flex items-center px-4 gap-4">
@@ -74,6 +87,21 @@ export function TopNav({ currentView, onViewChange, notificationCount }: TopNavP
           );
         })}
       </nav>
+
+      {/* Theme Toggle & User */}
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+        {user && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleSignOut}
+            className="w-9 h-9 rounded-lg hover:bg-destructive/10 hover:text-destructive"
+          >
+            <LogOut className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
     </header>
   );
 }

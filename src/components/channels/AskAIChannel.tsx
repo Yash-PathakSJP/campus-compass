@@ -8,9 +8,12 @@ import {
   Code,
   Brain,
   ArrowRight,
-  User
+  User,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -20,17 +23,17 @@ interface Message {
 }
 
 const suggestedPrompts = [
-  { icon: Code, text: "Explain recursion with examples" },
-  { icon: Brain, text: "Help me understand Big O notation" },
-  { icon: BookOpen, text: "Summarize DBMS normalization" },
-  { icon: Lightbulb, text: "Tips for system design interviews" },
+  { icon: Code, text: "Explain recursion with examples and free resources" },
+  { icon: Brain, text: "Help me understand Big O notation with practice problems" },
+  { icon: BookOpen, text: "Create a study roadmap for DBMS normalization" },
+  { icon: Lightbulb, text: "Find free resources for system design interviews" },
 ];
 
 const initialMessages: Message[] = [
   {
     id: "1",
     role: "assistant",
-    content: "Hey! I'm your **AI Skill Mentor** 🎯\n\nI'm here to help you learn, grow, and master your subjects. I can:\n\n• **Explain concepts** in simple terms\n• **Generate practice problems** tailored to your level\n• **Identify knowledge gaps** and suggest improvements\n• **Provide study roadmaps** for any topic\n\nWhat would you like to learn today?",
+    content: "Hey! I'm your **AI Skill Mentor** 🎯\n\nI'm here to help you learn, grow, and master your subjects. I can:\n\n• **Explain concepts** in simple terms\n• **Provide FREE learning resources** (YouTube, courses, docs)\n• **Identify knowledge gaps** and suggest improvements\n• **Create study roadmaps** for any topic\n\nWhat would you like to learn today?",
     timestamp: new Date(),
   },
 ];
@@ -40,6 +43,7 @@ export function AskAIChannel() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -50,7 +54,7 @@ export function AskAIChannel() {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isTyping) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -60,20 +64,103 @@ export function AskAIChannel() {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput("");
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: Message = {
+    try {
+      const chatMessages = [...messages.filter(m => m.id !== "1"), userMessage].map(m => ({
+        role: m.role,
+        content: m.content
+      }));
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/skill-mentor`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ messages: chatMessages, skillGaps: [] }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          toast({ title: "Rate Limited", description: "Please wait a moment and try again.", variant: "destructive" });
+          return;
+        }
+        if (response.status === 402) {
+          toast({ title: "Credits Exhausted", description: "AI credits have been exhausted.", variant: "destructive" });
+          return;
+        }
+        throw new Error("Failed to get response");
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No reader");
+
+      const decoder = new TextDecoder();
+      let assistantContent = "";
+      const assistantId = (Date.now() + 1).toString();
+
+      // Add empty assistant message
+      setMessages(prev => [...prev, {
+        id: assistantId,
+        role: "assistant",
+        content: "",
+        timestamp: new Date(),
+      }]);
+
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        
+        let newlineIndex;
+        while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+          let line = buffer.slice(0, newlineIndex);
+          buffer = buffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              assistantContent += content;
+              setMessages(prev => 
+                prev.map(m => 
+                  m.id === assistantId 
+                    ? { ...m, content: assistantContent }
+                    : m
+                )
+              );
+            }
+          } catch {
+            buffer = line + "\n" + buffer;
+            break;
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error("AI error:", error);
+      toast({ title: "Error", description: "Failed to get AI response. Please try again.", variant: "destructive" });
+      // Add fallback response
+      setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: generateMockResponse(input),
+        content: "I'm having trouble connecting right now. Please try again in a moment. In the meantime, you can explore free resources on:\n\n• **freeCodeCamp** - youtube.com/freecodecamp\n• **CS50** - cs50.harvard.edu\n• **Khan Academy** - khanacademy.org\n• **GeeksforGeeks** - geeksforgeeks.org",
         timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, aiMessage]);
+      }]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handlePromptClick = (prompt: string) => {
@@ -93,7 +180,7 @@ export function AskAIChannel() {
               AI Skill Mentor
               <Sparkles className="w-4 h-4 text-primary animate-pulse" />
             </h1>
-            <p className="text-sm text-muted-foreground">Personalized learning assistant</p>
+            <p className="text-sm text-muted-foreground">Personalized learning with free resources</p>
           </div>
         </div>
       </div>
@@ -195,33 +282,20 @@ export function AskAIChannel() {
             onKeyPress={(e) => e.key === "Enter" && handleSend()}
             placeholder="Ask anything about your studies..."
             className="flex-1 px-4 py-3 rounded-xl bg-secondary/50 border border-border/50 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+            disabled={isTyping}
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isTyping}
             className="px-4 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Send className="w-5 h-5" />
+            {isTyping ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>
         </div>
         <p className="text-xs text-muted-foreground text-center mt-2">
-          AI responses are personalized based on your skill level and learning goals
+          Powered by AI • Provides free learning resources tailored to your skill gaps
         </p>
       </div>
     </div>
   );
-}
-
-function generateMockResponse(input: string): string {
-  const responses: Record<string, string> = {
-    recursion: "**Recursion** is a technique where a function calls itself to solve smaller subproblems.\n\n**Key Components:**\n• **Base Case** - The condition that stops recursion\n• **Recursive Case** - Where the function calls itself\n\n**Example - Factorial:**\n```\nfunction factorial(n) {\n  if (n <= 1) return 1;  // Base case\n  return n * factorial(n-1);  // Recursive case\n}\n```\n\n**Practice Problem:** Try implementing Fibonacci using recursion!\n\n🎯 Based on your current level, I recommend starting with simple problems like sum of array elements before moving to tree traversals.",
-    "big o": "**Big O Notation** measures algorithm efficiency as input grows.\n\n**Common Complexities:**\n• **O(1)** - Constant (array access)\n• **O(log n)** - Logarithmic (binary search)\n• **O(n)** - Linear (simple loop)\n• **O(n log n)** - Linearithmic (merge sort)\n• **O(n²)** - Quadratic (nested loops)\n\n**Quick Tip:** Focus on the dominant term. O(n² + n) simplifies to O(n²)\n\n📊 Your current gap in algorithms suggests practicing sorting comparisons. Would you like practice problems?",
-  };
-
-  const lowerInput = input.toLowerCase();
-  for (const [key, response] of Object.entries(responses)) {
-    if (lowerInput.includes(key)) return response;
-  }
-
-  return "Great question! Let me break this down for you.\n\nBased on your learning profile and the topic you've asked about, here's a structured explanation:\n\n**Key Concepts:**\n• Start with the fundamentals\n• Build upon prerequisite knowledge\n• Practice with real examples\n\n**Next Steps:**\n1. Review the basic theory\n2. Work through guided examples\n3. Attempt practice problems\n\n💡 **Personalized Tip:** Given your current progress in the roadmap, I'd suggest focusing on understanding the core principles before diving into advanced applications.\n\nWould you like me to generate some practice problems tailored to your level?";
 }

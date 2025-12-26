@@ -14,7 +14,233 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      assignments: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          file_name: string | null
+          file_url: string | null
+          id: string
+          is_completed: boolean | null
+          subject: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          is_completed?: boolean | null
+          subject: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          is_completed?: boolean | null
+          subject?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      doubt_replies: {
+        Row: {
+          content: string
+          created_at: string | null
+          doubt_id: string
+          id: string
+          is_accepted: boolean | null
+          upvotes: number | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          doubt_id: string
+          id?: string
+          is_accepted?: boolean | null
+          upvotes?: number | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          doubt_id?: string
+          id?: string
+          is_accepted?: boolean | null
+          upvotes?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doubt_replies_doubt_id_fkey"
+            columns: ["doubt_id"]
+            isOneToOne: false
+            referencedRelation: "doubts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doubts: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          is_solved: boolean | null
+          subject: string
+          title: string
+          upvotes: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          is_solved?: boolean | null
+          subject: string
+          title: string
+          upvotes?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          is_solved?: boolean | null
+          subject?: string
+          title?: string
+          upvotes?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notes: {
+        Row: {
+          created_at: string | null
+          credits_earned: number | null
+          description: string | null
+          downloads: number | null
+          file_name: string
+          file_url: string
+          id: string
+          subject: string
+          title: string
+          upvotes: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          credits_earned?: number | null
+          description?: string | null
+          downloads?: number | null
+          file_name: string
+          file_url: string
+          id?: string
+          subject: string
+          title: string
+          upvotes?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          credits_earned?: number | null
+          description?: string | null
+          downloads?: number | null
+          file_name?: string
+          file_url?: string
+          id?: string
+          subject?: string
+          title?: string
+          upvotes?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          branch: string | null
+          created_at: string | null
+          credits: number | null
+          full_name: string | null
+          id: string
+          level: number | null
+          roll_number: string | null
+          updated_at: string | null
+          xp: number | null
+          year: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          branch?: string | null
+          created_at?: string | null
+          credits?: number | null
+          full_name?: string | null
+          id: string
+          level?: number | null
+          roll_number?: string | null
+          updated_at?: string | null
+          xp?: number | null
+          year?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          branch?: string | null
+          created_at?: string | null
+          credits?: number | null
+          full_name?: string | null
+          id?: string
+          level?: number | null
+          roll_number?: string | null
+          updated_at?: string | null
+          xp?: number | null
+          year?: string | null
+        }
+        Relationships: []
+      }
+      skill_gaps: {
+        Row: {
+          created_at: string | null
+          current_level: number | null
+          id: string
+          resources: Json | null
+          skill_name: string
+          target_level: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_level?: number | null
+          id?: string
+          resources?: Json | null
+          skill_name: string
+          target_level?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_level?: number | null
+          id?: string
+          resources?: Json | null
+          skill_name?: string
+          target_level?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
