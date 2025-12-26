@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { 
-  Hash, 
   Megaphone, 
   FileText, 
   ClipboardList, 
@@ -10,7 +9,8 @@ import {
   ChevronDown,
   Plus,
   Settings,
-  GraduationCap
+  GraduationCap,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,12 +22,12 @@ interface Channel {
 }
 
 const channels: Channel[] = [
-  { id: "announcements", name: "announcements", icon: Megaphone, unread: 2 },
-  { id: "notes-sharing", name: "notes-sharing", icon: FileText },
-  { id: "assignments", name: "assignments", icon: ClipboardList, unread: 1 },
-  { id: "doubts", name: "doubts", icon: HelpCircle },
-  { id: "resources", name: "resources", icon: FolderOpen },
-  { id: "ask-ai", name: "ask-ai", icon: Bot },
+  { id: "announcements", name: "Announcements", icon: Megaphone, unread: 2 },
+  { id: "notes-sharing", name: "Notes", icon: FileText },
+  { id: "assignments", name: "Assignments", icon: ClipboardList, unread: 1 },
+  { id: "doubts", name: "Doubts", icon: HelpCircle },
+  { id: "resources", name: "Resources", icon: FolderOpen },
+  { id: "ask-ai", name: "AI Mentor", icon: Bot },
 ];
 
 interface LeftSidebarProps {
@@ -39,40 +39,40 @@ export function LeftSidebar({ activeChannel, onChannelChange }: LeftSidebarProps
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
-    <aside className="w-60 bg-[hsl(var(--sidebar-bg))] flex flex-col h-full border-r border-border/50">
+    <aside className="w-64 bg-[hsl(var(--sidebar-bg))] flex flex-col h-full border-r border-border/40">
       {/* College Header */}
-      <div className="p-4 border-b border-border/50">
+      <div className="p-4 border-b border-border/40">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-info flex items-center justify-center">
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-info flex items-center justify-center shadow-lg">
             <GraduationCap className="w-5 h-5 text-primary-foreground" />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="font-bold text-sm truncate">MIT Institute</h2>
+            <h2 className="font-bold text-[15px] text-foreground truncate tracking-tight">MIT Institute</h2>
             <p className="text-xs text-muted-foreground truncate">Computer Science</p>
           </div>
-          <button className="p-1.5 rounded-md hover:bg-secondary transition-colors">
+          <button className="p-1.5 rounded-lg hover:bg-secondary/70 transition-colors">
             <ChevronDown className="w-4 h-4 text-muted-foreground" />
           </button>
         </div>
       </div>
 
-      {/* Class Server */}
-      <div className="flex-1 overflow-y-auto py-3">
-        <div className="px-3 mb-2">
+      {/* Channels */}
+      <div className="flex-1 overflow-y-auto py-4">
+        <div className="px-4 mb-3">
           <button 
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors w-full"
+            className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors w-full uppercase tracking-wider"
           >
             <ChevronDown className={cn(
               "w-3 h-3 transition-transform duration-200",
               !isExpanded && "-rotate-90"
             )} />
-            CSE-5 CHANNELS
+            CSE-5 Channels
           </button>
         </div>
 
         {isExpanded && (
-          <div className="px-2 space-y-0.5 animate-fade-in">
+          <div className="px-2.5 space-y-0.5 animate-fade-in">
             {channels.map((channel) => {
               const Icon = channel.icon;
               const isActive = activeChannel === channel.id;
@@ -83,18 +83,24 @@ export function LeftSidebar({ activeChannel, onChannelChange }: LeftSidebarProps
                   key={channel.id}
                   onClick={() => onChannelChange(channel.id)}
                   className={cn(
-                    "channel-item w-full group",
+                    "channel-item w-full group relative",
                     isActive && "active",
-                    isAI && "text-primary"
+                    isAI && !isActive && "text-primary/80"
                   )}
                 >
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full" />
+                  )}
                   <Icon className={cn(
-                    "w-4 h-4 flex-shrink-0",
+                    "w-[18px] h-[18px] flex-shrink-0 transition-colors",
                     isAI && "text-primary"
                   )} />
                   <span className="flex-1 text-left truncate">{channel.name}</span>
+                  {isAI && (
+                    <Sparkles className="w-3.5 h-3.5 text-primary animate-pulse" />
+                  )}
                   {channel.unread && (
-                    <span className="px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground text-xs font-bold min-w-[20px] text-center">
+                    <span className="px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold min-w-[18px] text-center">
                       {channel.unread}
                     </span>
                   )}
@@ -105,8 +111,8 @@ export function LeftSidebar({ activeChannel, onChannelChange }: LeftSidebarProps
         )}
 
         {/* Add Channel */}
-        <div className="px-2 mt-4">
-          <button className="channel-item w-full opacity-60 hover:opacity-100">
+        <div className="px-2.5 mt-5">
+          <button className="channel-item w-full opacity-50 hover:opacity-100 border border-dashed border-border/50 hover:border-primary/30">
             <Plus className="w-4 h-4" />
             <span>Add Channel</span>
           </button>
@@ -114,19 +120,19 @@ export function LeftSidebar({ activeChannel, onChannelChange }: LeftSidebarProps
       </div>
 
       {/* User Section */}
-      <div className="p-3 border-t border-border/50 bg-[hsl(var(--sidebar-bg))]">
-        <div className="flex items-center gap-3">
+      <div className="p-3 border-t border-border/40 bg-[hsl(var(--sidebar-bg))]">
+        <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-secondary/50 transition-colors cursor-pointer">
           <div className="relative">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-warning flex items-center justify-center text-sm font-bold text-accent-foreground">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent to-warning flex items-center justify-center text-sm font-bold text-accent-foreground shadow-md">
               A
             </div>
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-[hsl(var(--sidebar-bg))]" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-[hsl(var(--success))] rounded-full border-2 border-[hsl(var(--sidebar-bg))]" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">Arjun Kumar</p>
-            <p className="text-xs text-muted-foreground">Level 12 • 2,450 XP</p>
+            <p className="text-sm font-semibold text-foreground truncate">Arjun Kumar</p>
+            <p className="text-[11px] text-muted-foreground">Level 12 • 2,450 XP</p>
           </div>
-          <button className="p-1.5 rounded-md hover:bg-secondary transition-colors">
+          <button className="p-1.5 rounded-lg hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100">
             <Settings className="w-4 h-4 text-muted-foreground" />
           </button>
         </div>
