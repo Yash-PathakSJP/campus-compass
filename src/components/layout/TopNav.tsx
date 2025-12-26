@@ -3,8 +3,9 @@ import {
   Bell, 
   Trophy, 
   Map,
-  Menu,
-  LogOut
+  LayoutGrid,
+  LogOut,
+  Command
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -23,7 +24,7 @@ export function TopNav({ currentView, onViewChange, notificationCount }: TopNavP
   const navigate = useNavigate();
 
   const navItems = [
-    { id: "channels", label: "Channels", icon: Menu },
+    { id: "channels", label: "Channels", icon: LayoutGrid },
     { id: "leaderboard", label: "Leaderboard", icon: Trophy },
     { id: "roadmap", label: "Roadmap", icon: Map },
     { id: "notifications", label: "Notifications", icon: Bell, count: notificationCount },
@@ -35,26 +36,26 @@ export function TopNav({ currentView, onViewChange, notificationCount }: TopNavP
   };
 
   return (
-    <header className="h-14 border-b border-border/50 bg-card/50 backdrop-blur-sm flex items-center px-4 gap-4">
+    <header className="h-16 border-b border-border/40 bg-card/80 backdrop-blur-xl flex items-center px-5 gap-5">
       {/* Logo */}
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-info flex items-center justify-center">
+      <div className="flex items-center gap-2.5">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-info flex items-center justify-center shadow-lg">
           <span className="text-lg font-black text-primary-foreground">E</span>
         </div>
-        <span className="font-bold text-lg gradient-text">EduMesh</span>
+        <span className="font-bold text-xl gradient-text tracking-tight">EduMesh</span>
       </div>
 
       {/* Search */}
-      <div className="flex-1 max-w-md mx-auto">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <div className="flex-1 max-w-lg mx-auto">
+        <div className="relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <input
             type="text"
             placeholder="Search channels, notes, doubts..."
-            className="w-full pl-10 pr-4 py-2 rounded-lg bg-secondary/50 border border-border/50 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+            className="w-full pl-11 pr-16 py-2.5 rounded-xl bg-secondary/60 border border-border/50 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 focus:bg-secondary/80 transition-all"
           />
-          <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex h-5 items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-            ⌘K
+          <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex h-6 items-center gap-1 rounded-md border border-border bg-muted/60 px-2 font-mono text-[11px] font-medium text-muted-foreground">
+            <Command className="w-3 h-3" />K
           </kbd>
         </div>
       </div>
@@ -70,16 +71,16 @@ export function TopNav({ currentView, onViewChange, notificationCount }: TopNavP
               key={item.id}
               onClick={() => onViewChange(item.id)}
               className={cn(
-                "relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                "relative flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                 isActive 
-                  ? "bg-primary/10 text-primary" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  ? "bg-primary/10 text-primary shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/70"
               )}
             >
-              <Icon className="w-4 h-4" />
-              <span className="hidden md:inline">{item.label}</span>
+              <Icon className="w-[18px] h-[18px]" />
+              <span className="hidden lg:inline">{item.label}</span>
               {item.count && item.count > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-accent text-accent-foreground text-xs font-bold flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center shadow-sm animate-pulse">
                   {item.count}
                 </span>
               )}
@@ -88,15 +89,15 @@ export function TopNav({ currentView, onViewChange, notificationCount }: TopNavP
         })}
       </nav>
 
-      {/* Theme Toggle & User */}
-      <div className="flex items-center gap-2">
+      {/* Actions */}
+      <div className="flex items-center gap-1.5">
         <ThemeToggle />
         {user && (
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={handleSignOut}
-            className="w-9 h-9 rounded-lg hover:bg-destructive/10 hover:text-destructive"
+            className="w-9 h-9 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors"
           >
             <LogOut className="w-4 h-4" />
           </Button>
