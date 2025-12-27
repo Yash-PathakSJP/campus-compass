@@ -86,13 +86,13 @@ export default function Index() {
           
           <div className="flex items-center gap-3">
             <button 
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/auth")}
               className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               Sign In
             </button>
             <button 
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/auth")}
               className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
             >
               Get Started
@@ -130,7 +130,7 @@ export default function Index() {
                 className="px-4 py-2.5 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none w-full sm:w-64"
               />
               <button 
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate("/auth")}
                 className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 whitespace-nowrap"
               >
                 Join Free
@@ -162,11 +162,11 @@ export default function Index() {
               </div>
               <div className="aspect-video bg-gradient-to-br from-card to-background flex items-center justify-center">
                 <button 
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => navigate("/auth")}
                   className="px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold flex items-center gap-3 hover:opacity-90 transition-opacity glow-primary"
                 >
                   <Zap className="w-5 h-5" />
-                  Explore Dashboard Demo
+                  Explore Dashboard
                   <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
@@ -257,7 +257,7 @@ export default function Index() {
               Join thousands of students already using EduMesh to ace their academics.
             </p>
             <button 
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/auth")}
               className="px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-info text-primary-foreground font-semibold text-lg flex items-center gap-3 mx-auto hover:opacity-90 transition-opacity glow-primary"
             >
               <GraduationCap className="w-6 h-6" />
