@@ -209,7 +209,7 @@ import { Footer } from "@/components/layout/Footer";
 export default function CustomPage() {
   return (
     <div className="min-h-screen flex flex-col">
-      <main className="flex-1">{/* Your content here */}</main>
+      <main className="flex-1">{/* content here */}</main>
       <Footer />
     </div>
   );
