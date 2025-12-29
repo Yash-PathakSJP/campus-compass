@@ -7,6 +7,8 @@ import { NotesChannel } from "@/components/channels/NotesChannel";
 import { DoubtsChannel } from "@/components/channels/DoubtsChannel";
 import { AskAIChannel } from "@/components/channels/AskAIChannel";
 import { AnnouncementsChannel } from "@/components/channels/AnnouncementsChannel";
+import { AssignmentsChannel } from "@/components/channels/AssignmentsChannel";
+import { ResourcesChannel } from "@/components/channels/ResourcesChannel";
 import { LeaderboardView } from "@/components/views/LeaderboardView";
 import { RoadmapView } from "@/components/views/RoadmapView";
 import { NotificationsView } from "@/components/views/NotificationsView";
@@ -48,8 +50,12 @@ export default function Dashboard() {
         return <AnnouncementsChannel />;
       case "notes-sharing":
         return <NotesChannel />;
+      case "assignments":
+        return <AssignmentsChannel />;
       case "doubts":
         return <DoubtsChannel />;
+      case "resources":
+        return <ResourcesChannel />;
       case "ask-ai":
         return <AskAIChannel />;
       default:

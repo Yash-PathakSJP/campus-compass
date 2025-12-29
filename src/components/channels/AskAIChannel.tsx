@@ -9,10 +9,10 @@ import {
   Brain,
   ArrowRight,
   User,
-  Loader2
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface Message {
@@ -33,7 +33,7 @@ const initialMessages: Message[] = [
   {
     id: "1",
     role: "assistant",
-    content: "Hey! I'm your **AI Skill Mentor** 🎯\n\nI'm here to help you learn, grow, and master your subjects. I can:\n\n• **Explain concepts** in simple terms\n• **Provide FREE learning resources** (YouTube, courses, docs)\n• **Identify knowledge gaps** and suggest improvements\n• **Create study roadmaps** for any topic\n\nWhat would you like to learn today?",
+    content: "Hey! I'm your **AI Skill Mentor** 🎯\n\nI'm here to help you learn, grow, and master your subjects. I can:\n\n• **Explain concepts** in simple terms with real examples\n• **Provide FREE learning resources** (YouTube, courses, docs)\n• **Create personalized study roadmaps** for any topic\n• **Answer questions dynamically** based on what you need\n\nWhat would you like to learn today?",
     timestamp: new Date(),
   },
 ];
@@ -42,8 +42,18 @@ export function AskAIChannel() {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [apiKeyMissing, setApiKeyMissing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Validate API key presence
+  useEffect(() => {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+      setApiKeyMissing(true);
+      console.error("Gemini API key is not set. Please add VITE_GEMINI_API_KEY to .env");
+    }
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -54,7 +64,7 @@ export function AskAIChannel() {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim() || isTyping) return;
+    if (!input.trim() || isTyping || apiKeyMissing) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -69,93 +79,73 @@ export function AskAIChannel() {
     setIsTyping(true);
 
     try {
-      const chatMessages = [...messages.filter(m => m.id !== "1"), userMessage].map(m => ({
-        role: m.role,
-        content: m.content
-      }));
+      // Try direct Generative Language REST API call (client-side)
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) throw new Error("INVALID_API_KEY");
 
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/skill-mentor`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ messages: chatMessages, skillGaps: [] }),
-      });
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          toast({ title: "Rate Limited", description: "Please wait a moment and try again.", variant: "destructive" });
-          return;
-        }
-        if (response.status === 402) {
-          toast({ title: "Credits Exhausted", description: "AI credits have been exhausted.", variant: "destructive" });
-          return;
-        }
-        throw new Error("Failed to get response");
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error("No reader");
-
-      const decoder = new TextDecoder();
-      let assistantContent = "";
+      // Create assistant message placeholder
       const assistantId = (Date.now() + 1).toString();
-
-      // Add empty assistant message
       setMessages(prev => [...prev, {
         id: assistantId,
         role: "assistant",
         content: "",
         timestamp: new Date(),
-      }]);
+      }] );
 
-      let buffer = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      // Build prompt from recent messages for context (keep last 6 messages)
+      const recent = [...messages.filter(m => m.id !== "1"), userMessage].slice(-6);
+      const prompt = recent.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n') + `\nAssistant:`;
 
-        buffer += decoder.decode(value, { stream: true });
-        
-        let newlineIndex;
-        while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
-          let line = buffer.slice(0, newlineIndex);
-          buffer = buffer.slice(newlineIndex + 1);
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta2/models/gemini-1.5:generate?key=${apiKey}`;
+      const payload = {
+        "prompt": { "text": prompt },
+        "maxOutputTokens": 800
+      } as any;
 
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (line.startsWith(":") || line.trim() === "") continue;
-          if (!line.startsWith("data: ")) continue;
+      const r = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+      });
 
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              assistantContent += content;
-              setMessages(prev => 
-                prev.map(m => 
-                  m.id === assistantId 
-                    ? { ...m, content: assistantContent }
-                    : m
-                )
-              );
-            }
-          } catch {
-            buffer = line + "\n" + buffer;
-            break;
-          }
-        }
+      if (!r.ok) {
+        const text = await r.text();
+        throw new Error(`HTTP_${r.status}: ${text}`);
       }
+
+      const json = await r.json();
+      // Try to extract text from common fields
+      const assistantContent = json?.candidates?.[0]?.output || json?.output?.[0]?.content?.[0]?.text || JSON.stringify(json);
+
+      setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: assistantContent } : m));
+
     } catch (error: any) {
-      console.error("AI error:", error);
-      toast({ title: "Error", description: "Failed to get AI response. Please try again.", variant: "destructive" });
-      // Add fallback response
+      console.error("Gemini AI error:", error);
+
+      let errorMessage = "Failed to get AI response. Please try again.";
+      
+      if (error.message?.includes("RESOURCE_EXHAUSTED")) {
+        errorMessage = "API quota exhausted. Please wait before trying again.";
+      } else if (error.message?.includes("INVALID_API_KEY")) {
+        errorMessage = "Invalid API key. Please check your Gemini API key in .env";
+        setApiKeyMissing(true);
+      } else if (error.message?.includes("429")) {
+        errorMessage = "Too many requests. Please wait a moment and try again.";
+      }
+
+      toast({ 
+        title: "Error", 
+        description: errorMessage, 
+        variant: "destructive" 
+      });
+
+      // Add error message to chat
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "I'm having trouble connecting right now. Please try again in a moment. In the meantime, you can explore free resources on:\n\n• **freeCodeCamp** - youtube.com/freecodecamp\n• **CS50** - cs50.harvard.edu\n• **Khan Academy** - khanacademy.org\n• **GeeksforGeeks** - geeksforgeeks.org",
+        content: `⚠️ ${errorMessage}\n\nTry asking your question again, or check the console for more details.`,
         timestamp: new Date(),
       }]);
     } finally {
@@ -180,10 +170,21 @@ export function AskAIChannel() {
               AI Skill Mentor
               <Sparkles className="w-4 h-4 text-primary animate-pulse" />
             </h1>
-            <p className="text-sm text-muted-foreground">Personalized learning with free resources</p>
+            <p className="text-sm text-muted-foreground">Powered by Google Gemini AI</p>
           </div>
         </div>
       </div>
+
+      {/* API Key Warning */}
+      {apiKeyMissing && (
+        <div className="mx-4 mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex gap-3">
+          <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-destructive">
+            <p className="font-semibold">API Key Missing</p>
+            <p className="text-xs mt-1">Please add your Gemini API key to <code className="bg-black/20 px-1 rounded">.env</code> as <code className="bg-black/20 px-1 rounded">VITE_GEMINI_API_KEY</code></p>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -248,7 +249,7 @@ export function AskAIChannel() {
       </div>
 
       {/* Suggested Prompts */}
-      {messages.length === 1 && (
+      {messages.length === 1 && !apiKeyMissing && (
         <div className="px-4 pb-2">
           <p className="text-xs text-muted-foreground mb-2">Try asking:</p>
           <div className="grid grid-cols-2 gap-2">
@@ -280,20 +281,20 @@ export function AskAIChannel() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Ask anything about your studies..."
+            placeholder={apiKeyMissing ? "API key not configured..." : "Ask anything about your studies..."}
             className="flex-1 px-4 py-3 rounded-xl bg-secondary/50 border border-border/50 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-            disabled={isTyping}
+            disabled={isTyping || apiKeyMissing}
           />
           <button
             onClick={handleSend}
-            disabled={!input.trim() || isTyping}
+            disabled={!input.trim() || isTyping || apiKeyMissing}
             className="px-4 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isTyping ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>
         </div>
         <p className="text-xs text-muted-foreground text-center mt-2">
-          Powered by AI • Provides free learning resources tailored to your skill gaps
+          Powered by Google Gemini AI • Provides dynamic responses based on your questions
         </p>
       </div>
     </div>

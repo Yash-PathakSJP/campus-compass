@@ -1,21 +1,31 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+/*
+  Supabase Edge Function handler.
+  This file is written to work in the Supabase/Deno runtime but
+  also avoid TypeScript/DX errors in local tooling by accessing
+  environment variables safely and not importing Deno-only modules.
+*/
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+declare const Deno: any;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+export default async function handler(req: any): Promise<any> {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages, skillGaps } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    const { messages, skillGaps } = typeof req.json === 'function' ? await req.json() : JSON.parse(await req.text());
+
+    // Resolve GEMINI_API_KEY in a way that works in Deno or Node (for local tooling)
+    const GEMINI_API_KEY = (typeof Deno !== 'undefined' && Deno?.env?.get) ? Deno.env.get('GEMINI_API_KEY') : (process?.env?.GEMINI_API_KEY || process?.env?.VITE_GEMINI_API_KEY || (typeof globalThis !== 'undefined' ? (globalThis as any).GEMINI_API_KEY : undefined));
+
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not configured');
     }
 
     const skillGapsContext = skillGaps && skillGaps.length > 0 
@@ -49,7 +59,7 @@ Always be encouraging and supportive. Focus on practical, actionable advice.`;
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GEMINI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -90,4 +100,4 @@ Always be encouraging and supportive. Focus on practical, actionable advice.`;
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
+}

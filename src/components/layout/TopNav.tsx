@@ -93,14 +93,30 @@ export function TopNav({ currentView, onViewChange, notificationCount }: TopNavP
       <div className="flex items-center gap-1.5">
         <ThemeToggle />
         {user && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={handleSignOut}
-            className="w-9 h-9 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-secondary/60 border border-border/40">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-info flex items-center justify-center text-primary-foreground font-semibold">
+                {(() => {
+                  const name = (user.user_metadata as any)?.full_name || (user.user_metadata as any)?.name || user.email || "U";
+                  const parts = (name as string).split(" ").filter(Boolean);
+                  const initials = parts.length === 0 ? "U" : parts.length === 1 ? parts[0].slice(0,1).toUpperCase() : (parts[0][0]+parts[parts.length-1][0]).toUpperCase();
+                  return initials;
+                })()}
+              </div>
+              <div className="hidden sm:flex flex-col">
+                <span className="text-sm font-medium">{(user.user_metadata as any)?.full_name || (user.user_metadata as any)?.name || user.email}</span>
+                <span className="text-xs text-muted-foreground">Student</span>
+              </div>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleSignOut}
+              className="w-9 h-9 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         )}
       </div>
     </header>
