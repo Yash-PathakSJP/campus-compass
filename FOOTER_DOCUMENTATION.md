@@ -93,7 +93,7 @@ Edit in `src/components/layout/Footer.tsx`:
 const socialLinks = [
   {
     icon: Facebook,
-    href: "https://facebook.com/your-page", // Update this
+    href: "https://facebook.com/your-page", 
     label: "Facebook",
     color: "hover:text-blue-600",
   },
@@ -108,10 +108,10 @@ const contactInfo = [
   {
     icon: Mail,
     label: "Email",
-    value: "your-email@edumesh.com", // Update this
+    value: "your-email@edumesh.com",
     href: "mailto:your-email@edumesh.com",
   },
-  // ... other contact info
+  ....
 ];
 ```
 
@@ -122,7 +122,7 @@ const footerSections = {
   product: {
     title: "Product",
     links: [
-      { label: "Your Link", href: "/your-path" }, // Add your links
+      { label: "Your Link", href: "/your-path" }, 
       // ...
     ],
   },
@@ -134,7 +134,7 @@ const footerSections = {
 
 ```tsx
 <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-  Your company description here...
+company description here...
 </p>
 ```
 
@@ -209,7 +209,7 @@ import { Footer } from "@/components/layout/Footer";
 export default function CustomPage() {
   return (
     <div className="min-h-screen flex flex-col">
-      <main className="flex-1">{/* Your content here */}</main>
+      <main className="flex-1">{/* content here */}</main>
       <Footer />
     </div>
   );
