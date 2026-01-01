@@ -280,7 +280,7 @@ export default function Index() {
           {/* Badge */}
           <div className="hero-badge inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/20 to-info/20 border border-primary/30 text-sm font-medium text-primary mb-8">
             <Sparkles className="w-4 h-4 animate-spin" />
-            AI-Powered Learning Platform
+            Empower Your Learning Journey
           </div>
           
           {/* Main Title */}
@@ -348,14 +348,19 @@ export default function Index() {
                     <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-primary/20 rounded-full blur-2xl animate-pulse" />
                     <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-info/20 rounded-full blur-2xl animate-pulse" />
                   </div>
-                  <button 
-                    onClick={() => navigate("/auth")}
-                    className="relative px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-info text-primary-foreground font-semibold flex items-center gap-3 hover:scale-105 transition-transform shadow-lg hover:shadow-xl"
-                  >
-                    <Play className="w-5 h-5" />
-                    Explore Dashboard
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
+                  <div className="w-full sm:w-auto flex flex-col items-center gap-3 px-6">
+                    <button
+                      onClick={() => navigate("/demo")}
+                      aria-label="Open demo dashboard (no login required)"
+                      title="Open demo dashboard (no login required)"
+                      className="w-full sm:w-auto max-w-md relative px-6 py-4 rounded-xl bg-gradient-to-r from-primary to-info text-primary-foreground font-semibold flex items-center justify-center gap-3 hover:scale-105 transition-transform shadow-lg hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                    >
+                      <Play className="w-5 h-5" />
+                      <span>Explore Dashboard</span>
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                    <p className="text-xs text-center text-muted-foreground">Preview demo (no login required) — click to view a read-only demo of EduMesh.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -528,3 +533,4 @@ export default function Index() {
     </div>
   );
 }
+

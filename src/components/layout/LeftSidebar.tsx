@@ -47,7 +47,7 @@ export function LeftSidebar({ activeChannel, onChannelChange }: LeftSidebarProps
             <GraduationCap className="w-5 h-5 text-primary-foreground" />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="font-bold text-[15px] text-foreground truncate tracking-tight">MIT Institute</h2>
+            <h2 className="font-bold text-[15px] text-foreground truncate tracking-tight">AITR Indore</h2>
             <p className="text-xs text-muted-foreground truncate">Computer Science</p>
           </div>
           <button className="p-1.5 rounded-lg hover:bg-secondary/70 transition-colors">
@@ -67,7 +67,7 @@ export function LeftSidebar({ activeChannel, onChannelChange }: LeftSidebarProps
               "w-3 h-3 transition-transform duration-200",
               !isExpanded && "-rotate-90"
             )} />
-            CSE-5 Channels
+            CSE Channels
           </button>
         </div>
 
@@ -120,22 +120,7 @@ export function LeftSidebar({ activeChannel, onChannelChange }: LeftSidebarProps
       </div>
 
       {/* User Section */}
-      <div className="p-3 border-t border-border/40 bg-[hsl(var(--sidebar-bg))]">
-        <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-secondary/50 transition-colors cursor-pointer">
-          <div className="relative">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent to-warning flex items-center justify-center text-sm font-bold text-accent-foreground shadow-md">
-              A
-            </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-[hsl(var(--success))] rounded-full border-2 border-[hsl(var(--sidebar-bg))]" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-foreground truncate">Arjun Kumar</p>
-            <p className="text-[11px] text-muted-foreground">Level 12 • 2,450 XP</p>
-          </div>
-          <button className="p-1.5 rounded-lg hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100">
-            <Settings className="w-4 h-4 text-muted-foreground" />
-          </button>
-        </div>
+      <div className="p-4 border-t border-border/40">
       </div>
     </aside>
   );
